@@ -1,0 +1,9 @@
+{
+	"weatherApiKey": "06a3e285f37f473a14f15d814e8df64d",
+	"fontNameBold": "AppleSDGothicNeo-Bold",
+	"fontNameRegular": "AppleSDGothicNeo-Regular",
+	"fontSizeLarge": "20",
+	"fontSizeMedium": "14",
+	"fontSizeSmall": "12",
+    "dDayList": ["2016-10-08", "2021-09-11"]
+}

@@ -37,6 +37,9 @@ console.log(
     `FONT_SIZE_LARGE : ${FONT_SIZE_LARGE}, FONT_SIZE_MEDIUM : ${FONT_SIZE_MEDIUM}, FONT_SIZE_SMALL : ${FONT_SIZE_SMALL}`
 )
 
+// D-Day 정보
+let dDayList = prefData.dDayList
+
 // 현재 위치 정보
 let latitude, longitude, subLocal, locationData
 await getCurrentCoord()
@@ -208,7 +211,7 @@ function addDelimiter(target) {
 function batteryModule(target) {
     let batteryImg = target.addImage(renderBatteryIcon(Device.batteryLevel(), Device.isCharging()))
     console.log(`Device.isCharging() : ${Device.isCharging()}`)
-    batteryImg.imageSize = new Size(35, 19)
+    batteryImg.imageSize = new Size(30, 15)
     batteryImg.tintColor = new Color(Device.isCharging() ? "#ffffff" : "#ffffff", 0.7)
     target.addSpacer(2)
     addLabel(String(getBatteryPercent()), FONT_SIZE_LARGE, FONT_NAME_BOLD, 0.8, "#ffffff", target)
@@ -273,6 +276,21 @@ function renderBatteryIcon(batteryLevel, isCharging = false) {
     return draw.getImage()
 }
 
+function countDay(target) {
+    let defToday = new Date(formatDate("yyyy-MM-dd", new Date())).getTime()
+    let defTarget = new Date(target).getTime()
+
+    var gap = defTarget - defToday
+    gap = gap / (1000 * 60 * 60 * 24)
+    var count = Math.ceil(gap)
+
+    if (gap > -1) {
+        return new Intl.NumberFormat().format(Math.abs(gap))
+    } else {
+        return Intl.NumberFormat().format(Math.abs(gap * -1 + 1))
+    }
+}
+
 /***********************
  * ---- Layout ------*
  ***********************/
@@ -286,6 +304,7 @@ WIDGET.backgroundImage = fm.readImage(
 WIDGET.addSpacer()
 const level1Stack = WIDGET.addStack()
 level1Stack.addSpacer()
+level1Stack.centerAlignContent()
 addLabel(`${week}, ${month} ${day}`, FONT_SIZE_LARGE, FONT_NAME_BOLD, 0.8, "#ffffff", level1Stack) // 날짜정보 추가
 addDelimiter(level1Stack) // 구분자
 
@@ -325,14 +344,12 @@ const weatherIcon = weatherIconStack.addImage(Image.fromFile(weatherData[0].icon
 weatherIcon.imageSize = new Size(35, 35)
 weatherIconStack.addSpacer()
 
-
 // 현재 날씨 설명
 const weatherDescriptionStack = weatherD0IconStack.addStack()
 weatherDescriptionStack.layoutHorizontally()
 weatherDescriptionStack.addSpacer()
 addLabel(weatherData[0].description, FONT_SIZE_MEDIUM, FONT_NAME_BOLD, 0.8, "#ffffff", weatherDescriptionStack)
 weatherDescriptionStack.addSpacer()
-
 
 weatherD0Stack.layoutHorizontally()
 weatherD0Stack.addSpacer(2)
@@ -362,7 +379,6 @@ const delLine = level2Stack.addStack()
 delLine.size = new Size(1, 50)
 delLine.borderWidth = 0
 delLine.borderColor = new Color("#ffffff", 0.3)
-
 
 weatherData.forEach((obj, idx) => {
     if (idx > 0) {
@@ -408,17 +424,14 @@ const level3Stack = WIDGET.addStack()
 level3Stack.addSpacer()
 level3Stack.borderWidth = 0
 
-
 const counter1 = level3Stack.addStack()
-addLabel("라니동동 1,222일 💕", FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.8, "#ffffff", counter1)
+addLabel(`라니동동 ${countDay(dDayList[0])}일 💕`, FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.6, "#ffffff", counter1)
+
+level3Stack.addSpacer(10)
 
 const counter2 = level3Stack.addStack()
-addLabel("Wedding 1,222일 😝", FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.8, "#ffffff", counter2)
-
-
-
+addLabel(`Wedding ${countDay(dDayList[0])}일 😝`, FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.6, "#ffffff", counter2)
 level3Stack.addSpacer()
-
 
 if (config.runsInWidget) {
     Script.setWidget(WIDGET)
