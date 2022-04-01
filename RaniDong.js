@@ -341,7 +341,7 @@ weatherIconStack.layoutHorizontally()
 
 weatherIconStack.addSpacer()
 const weatherIcon = weatherIconStack.addImage(Image.fromFile(weatherData[0].iconLocalPath))
-weatherIcon.imageSize = new Size(35, 35)
+weatherIcon.imageSize = new Size(32, 32)
 weatherIconStack.addSpacer()
 
 // 현재 날씨 설명
@@ -430,7 +430,7 @@ addLabel(`라니동동 ${countDay(dDayList[0])}일 💕`, FONT_SIZE_SMALL, FONT_
 level3Stack.addSpacer(10)
 
 const counter2 = level3Stack.addStack()
-addLabel(`Wedding ${countDay(dDayList[0])}일 😝`, FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.6, "#ffffff", counter2)
+addLabel(`Wedding ${countDay(dDayList[1])}일 😝`, FONT_SIZE_SMALL, FONT_NAME_BOLD, 0.6, "#ffffff", counter2)
 level3Stack.addSpacer()
 
 if (config.runsInWidget) {
