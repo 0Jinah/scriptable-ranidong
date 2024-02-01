@@ -173,7 +173,7 @@ async function getWeatherData() {
         weatherData.push(weather)
 
         //console.log(`index : ${i} : ${weather.iconDownloadPath}`)
-        await getWeatherIconFromUrl(weather)
+        //await getWeatherIconFromUrl(weather)
     }
 }
 
