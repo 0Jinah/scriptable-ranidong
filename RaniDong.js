@@ -32,10 +32,8 @@ const FONT_SIZE_LARGE = Number(prefData.fontSizeLarge)
 const FONT_SIZE_MEDIUM = Number(prefData.fontSizeMedium)
 const FONT_SIZE_SMALL = Number(prefData.fontSizeSmall)
 
-console.log(`FONT_NAME_BOLD : ${FONT_NAME_BOLD}, FONT_NAME_REGULAR : ${FONT_NAME_REGULAR}`)
-console.log(
-    `FONT_SIZE_LARGE : ${FONT_SIZE_LARGE}, FONT_SIZE_MEDIUM : ${FONT_SIZE_MEDIUM}, FONT_SIZE_SMALL : ${FONT_SIZE_SMALL}`
-)
+//console.log(`FONT_NAME_BOLD : ${FONT_NAME_BOLD}, FONT_NAME_REGULAR : ${FONT_NAME_REGULAR}`)
+//console.log(`FONT_SIZE_LARGE : ${FONT_SIZE_LARGE}, FONT_SIZE_MEDIUM : ${FONT_SIZE_MEDIUM}, FONT_SIZE_SMALL : ${FONT_SIZE_SMALL}`)
 
 // D-Day 정보
 let dDayList = prefData.dDayList
@@ -49,18 +47,18 @@ const WEATHER_API_KEY = prefData.weatherApiKey
 // const WEATHER_ICON_DOWNLOAD_URL = "http://openweathermap.org/img/wn"
 const WEATHER_ICON_DOWNLOAD_URL =
     "https://raw.githubusercontent.com/0Jinah/scriptable-ranidong/master/resources/weather-icon"
-console.log(`WEATHER_API_KEY: ${WEATHER_API_KEY}`)
+//console.log(`WEATHER_API_KEY: ${WEATHER_API_KEY}`)
 const WEATHER_ICON_LOCAL_PATH = `${fm.documentsDirectory().replace("/private", "")}/weather-icons`
 
 if (!fm.fileExists(WEATHER_ICON_LOCAL_PATH)) {
-    console.log("Directry not exist creating one.")
+    //console.log("Directry not exist creating one.")
     fm.createDirectory(WEATHER_ICON_LOCAL_PATH)
 }
 
 let weatherData = []
 await getWeatherData()
 
-console.log(weatherData)
+//console.log(weatherData)
 
 // 날짜 정보
 let today = new Date()
@@ -68,7 +66,7 @@ const week = formatDate("EEE", today)
 const day = formatDate("d", today)
 const month = formatDate("MMM", today)
 
-console.log(`week : ${week}, month: ${month}, day: ${day}`)
+//console.log(`week : ${week}, month: ${month}, day: ${day}`)
 
 /***********************
  * ---- Functions ------*
@@ -94,8 +92,7 @@ async function checkFileAvailability(path) {
 // URL에서 이미지 다운로드
 async function getImageFromUrl(url) {
     const request = new Request(url)
-    var res = await request.loadImage()
-    return res
+    return await request.loadImage()
 }
 
 // 현재 위치 정보 가져오기
@@ -111,15 +108,15 @@ async function getCurrentCoord() {
         longitude = currentLocation.longitude
 
         locationData = await Location.reverseGeocode(latitude, longitude, "ko_KR")
-        // console.log(locationData)
+        // //console.log(locationData)
 
         subLocal = locationData[0].subLocality
 
-        console.log(`latitude : ${latitude}`)
-        console.log(`longitude : ${longitude}`)
-        console.log(`subLocal : ${subLocal}`)
+        //console.log(`latitude : ${latitude}`)
+        //console.log(`longitude : ${longitude}`)
+        //console.log(`subLocal : ${subLocal}`)
     } catch (e) {
-        console.log(e)
+        //console.log(e)
     }
 }
 
@@ -145,26 +142,37 @@ function convertWeatherId2String(weatherId) {
 // 날씨정보 가져오기 (open weather map)
 async function getWeatherData() {
     const API_URL = `http://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${WEATHER_API_KEY}&exclude=minutely,alerts&lang=kr&units=metric`
-    rawData = JSON.parse(await new Request(API_URL).loadString())
-    let daily = rawData.daily[0]
 
-    for (i = 0; i < 5; i++) {
-        let hourly = rawData.hourly[i * 3]
+    const rawData = await new Request(API_URL).loadJSON()
 
-        let weather = {}
-        weather.time = formatDate("HH", new Date(hourly.dt * 1000))
-        weather.temp = Math.round(hourly.temp)
-        weather.feelsLike = Math.round(hourly.feels_like)
-        weather.pop = Math.round(hourly.pop * 100)
-        weather.icon = hourly.weather[0].icon
-        weather.iconLocalPath = `${WEATHER_ICON_LOCAL_PATH}/${hourly.weather[0].icon}.png`
-        weather.iconDownloadPath = `${WEATHER_ICON_DOWNLOAD_URL}/${hourly.weather[0].icon}.png`
-        weather.description = convertWeatherId2String(hourly.weather[0].id)
-        weather.minTemp = Math.round(daily.temp.min)
-        weather.maxTemp = Math.round(daily.temp.max)
+    let daily;
+
+    try{
+        daily = rawData?.daily[0] || {}
+    } catch(e) {
+        daily = {}
+    }
+
+    for (let i = 0; i < 5; i++) {
+        let hourlyData = (rawData?.hourly || []);
+        let hourly = hourlyData[i * 3] || {};
+
+        let weather = {
+            time: formatDate("HH", new Date(hourly.dt * 1000 || 0)),
+            temp: Math.round(hourly.temp || 0),
+            feelsLike: Math.round(hourly.feels_like || 0),
+            pop: Math.round((hourly.pop || 0) * 100),
+            icon: hourly.weather?.[0]?.icon || '02n',
+            iconLocalPath: `${WEATHER_ICON_LOCAL_PATH}/${hourly.weather?.[0]?.icon}.png`,
+            iconDownloadPath: `${WEATHER_ICON_DOWNLOAD_URL}/${hourly.weather?.[0]?.icon}.png`,
+            description: convertWeatherId2String(hourly.weather?.[0]?.id || '721'),
+            minTemp: daily?.temp?.min !== undefined ? Math.round(daily.temp.min) : '-',
+            maxTemp: daily?.temp?.max !== undefined ? Math.round(daily.temp.max) : '-'
+        };
+        
         weatherData.push(weather)
 
-        console.log(`index : ${i} : ${weather.iconDownloadPath}`)
+        //console.log(`index : ${i} : ${weather.iconDownloadPath}`)
         await getWeatherIconFromUrl(weather)
     }
 }
@@ -173,22 +181,25 @@ async function getWeatherData() {
 async function getWeatherIconFromUrl(weather) {
     let image = await getImageFromUrl(weather.iconDownloadPath)
     fm.writeImage(weather.iconLocalPath, image)
-
-    // console.log(`weatherImage : ${weatherImage}`)
-    // fm.writeImage(obj.iconLocalPath, weatherImage)
-    console.log(`weather icon(${weather.icon}) download complete.`)
 }
 
 // 날짜 형식 변환
 function formatDate(format, date, locale) {
-    var df = new DateFormatter()
-    df.locale = locale ? locale : "en_US"
+    let df = new DateFormatter()
+    df.locale = locale || "en_US"
     df.dateFormat = format
     return df.string(date)
 }
 
 // Target에 Label 추가
 function addLabel(text, fontSize, fontName, opacity, color, target) {
+
+    if(text === null){
+        text = '';
+        console.log("label is null (target)");
+        console.log(target);
+    }
+
     let label = target.addText(text)
     label.font = new Font(fontName, fontSize)
     label.textColor = new Color(color, opacity)
@@ -210,7 +221,7 @@ function addDelimiter(target) {
 // Target에 베터리 정보 추가
 function batteryModule(target) {
     let batteryImg = target.addImage(renderBatteryIcon(Device.batteryLevel(), Device.isCharging()))
-    console.log(`Device.isCharging() : ${Device.isCharging()}`)
+    //console.log(`Device.isCharging() : ${Device.isCharging()}`)
     batteryImg.imageSize = new Size(30, 15)
     batteryImg.tintColor = new Color(Device.isCharging() ? "#ffffff" : "#ffffff", 0.7)
     target.addSpacer(2)
@@ -280,9 +291,9 @@ function countDay(target) {
     let defToday = new Date(formatDate("yyyy-MM-dd", new Date())).getTime()
     let defTarget = new Date(target).getTime()
 
-    var gap = defTarget - defToday
+    let gap = defTarget - defToday
     gap = gap / (1000 * 60 * 60 * 24)
-    var count = Math.ceil(gap)
+    let count = Math.ceil(gap)
 
     if (gap > -1) {
         return new Intl.NumberFormat().format(Math.abs(gap))
@@ -354,8 +365,8 @@ weatherDescriptionStack.addSpacer()
 weatherD0Stack.layoutHorizontally()
 weatherD0Stack.addSpacer(2)
 
-console.log(`weatherD0Stack.size :`)
-console.log(weatherD0Stack.size)
+//console.log(`weatherD0Stack.size :`)
+//console.log(weatherD0Stack.size)
 
 // 현재 온도
 const weatherD0TempStack = weatherD0Stack.addStack()
